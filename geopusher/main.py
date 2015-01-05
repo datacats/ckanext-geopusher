@@ -18,16 +18,19 @@ import ckanserviceprovider.web as web
 
 def serve():
     web.init()
-    web.app.run(web.app.config.get('HOST'), web.app.config.get('PORT'))
+    host = web.app.config.get('HOST')
+    port = web.app.config.get('PORT')
+    print "Serving on {0}:{1}".format(host, port)
+    web.app.run(host, port)
 
 def main():
     opts = docopt(__doc__)
 
     if opts['start']:
         cfg = opts['--config']
-        os.environ['JOB_CONFIG'] = cfg
+        os.environ['JOB_CONFIG'] = os.path.abspath(cfg)
         serve()
-        
+
     elif opts['register']:
         ckan_url = opts['CKAN_SITE_URL']
         geopusher_url = "http://{0}:{1}/".format(web.app.config.get('HOST'),
