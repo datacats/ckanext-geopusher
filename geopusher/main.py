@@ -1,7 +1,7 @@
 """geopusher command line interface
 
 Usage:
-  geopusher start
+  geopusher start [-c CONFIG]
   geopusher register CKAN_SITE_URL
 
 Options:
@@ -11,13 +11,10 @@ Options:
 
 import os
 import jobs
-import docopt
 import ckanapi
 
+from docopt import docopt
 import ckanserviceprovider.web as web
-
-# check whether jobs have been imported properly
-assert(jobs.push_to_datastore)
 
 def serve():
     web.init()
@@ -26,13 +23,13 @@ def serve():
 def main():
     opts = docopt(__doc__)
 
-    cfg = arguments['--config']
-    os.environ['JOB_CONFIG'] = cfg
-
     if opts['start']:
+        cfg = opts['--config']
+        os.environ['JOB_CONFIG'] = cfg
         serve()
+        
     elif opts['register']:
-        ckan_url = arguments['CKAN_SITE_URL']
+        ckan_url = opts['CKAN_SITE_URL']
         geopusher_url = "http://{0}:{1}/".format(web.app.config.get('HOST'),
                                                  web.app.config.get('PORT'))
 
