@@ -14,8 +14,8 @@ app = Flask(__name__)
 TEMPDIR = 'tmp'
 OUTDIR = os.path.join(TEMPDIR, 'out')
 
-CKAN_URL = os.environ.get(CKAN_URL, None)
-APIKEY = os.environ.get(APIKEY, None)
+CKAN_URL = os.environ.get('CKAN_URL', None)
+APIKEY = os.environ.get('APIKEY', None)
 
 def convert_file(shapefile_path, outfile_path):
     reader = shapefile.Reader(shapefile_path)
@@ -79,7 +79,8 @@ def process_webhook():
             package_id = resource['package_id'],
             upload = open(outfile),
             format = 'GeoJSON',
-            name = resource['name']
+            name = resource['name'],
+            url = 'any'
         )
 
         return '', 201
