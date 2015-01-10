@@ -64,6 +64,12 @@ def process_webhook():
         convert_file(os.path.join(unzipped_dir, shapefile), outfile)
 
         ckan = ckanapi.RemoteCKAN(CKAN_URL, apikey=APIKEY)
+
+        package = ckan.action.package_show(id=resource['package_id'])
+        for res in package['resources']:
+            if res['format'] == 'GeoJSON':
+                ckan.action.resource_delete(id=res['id'])
+
         ckan.action.resource_create(
             package_id = resource['package_id'],
             upload = open(outfile),
