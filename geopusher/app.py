@@ -9,6 +9,7 @@ import requests
 import shapefile
 
 from flask import Flask, request
+from subprocess import call
 app = Flask(__name__)
 
 TEMPDIR = 'tmp'
@@ -18,23 +19,11 @@ CKAN_URL = os.environ.get('CKAN_URL', None)
 APIKEY = os.environ.get('APIKEY', None)
 
 def convert_file(shapefile_path, outfile_path):
-    reader = shapefile.Reader(shapefile_path)
-    fields = reader.fields[1:]
-    field_names = [field[0] for field in fields]
-    buffer = []
-    for sr in reader.shapeRecords():
-       atr = dict(zip(field_names, sr.record))
-       geom = sr.shape.__geo_interface__
-       buffer.append(dict(type="Feature", geometry=geom, properties=atr))
+    if os.path.isfile(outfile_path):
+        os.remove(outfile_path)
 
-    geojson = open(outfile_path, "w")
-    geojson.write(json.dumps(
-                    {"type": "FeatureCollection",
-                     "features": buffer
-                    },
-                  indent=2) + "\n"
-                  )
-    geojson.close()
+    call(['ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
+            outfile_path, shapefile_path ])
 
 def download_file(url):
     tmpname = '{0}.{1}'.format(uuid.uuid1(), 'shp.zip')
