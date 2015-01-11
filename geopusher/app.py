@@ -15,8 +15,8 @@ app = Flask(__name__)
 TEMPDIR = 'tmp'
 OUTDIR = os.path.join(TEMPDIR, 'out')
 
-CKAN_URL = os.environ.get('CKAN_URL', None)
-APIKEY = os.environ.get('APIKEY', None)
+CKAN_URL = os.environ.get('CKAN_URL', 'http://boot2docker:5698')
+APIKEY = os.environ.get('APIKEY', '3067dd7b-945f-44f4-a090-3c990a4ccd83')
 
 def convert_file(shapefile_path, outfile_path):
     if os.path.isfile(outfile_path):
@@ -48,6 +48,8 @@ def process_webhook():
     if resource is None:
         return "", 400
 
+    print "{0}".format(resource['name'])
+
     if resource.get('format', None) == 'SHP':
         file = download_file(resource['url'])
 
@@ -63,11 +65,13 @@ def process_webhook():
 
         convert_file(os.path.join(unzipped_dir, shapefile), outfile)
 
-        ckan = ckanapi.RemoteCKAN(CKAN_URL, apikey=APIKEY)
+        if os.path.getsize(outfile) > 20000000:
+            return '', 413
 
+        ckan = ckanapi.RemoteCKAN(CKAN_URL, apikey=APIKEY)
         package = ckan.action.package_show(id=resource['package_id'])
         for res in package['resources']:
-            if res['format'] == 'GeoJSON':
+            if res['format'] == 'GeoJSON' and res['name'] == resource['name']:
                 ckan.action.resource_delete(id=res['id'])
 
         ckan.action.resource_create(
@@ -83,4 +87,4 @@ def process_webhook():
     return '', 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True, threaded=True)
