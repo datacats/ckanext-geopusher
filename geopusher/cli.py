@@ -21,10 +21,19 @@ from ckanapi.localckan import LocalCKAN
 def parse_arguments():
     return docopt(__doc__, version = __version__)
 
-def main():
+def main(paster=False):
     arguments = parse_arguments()
+
+    if not paster and not arguments['--remote']:
+        return _switch_to_paster(arguments)
 
     if arguments['--remote']:
         ckan = RemoteCKAN(arguments['--remote'], apikey=arguments['--apikey'])
     else:
         ckan = LocalCKAN(username=arguments['--user'])
+
+
+def _switch_to_paster(arguments):
+    sys.argv[1:1] = ['--plugin=geopusher', 'geopusher']
+    sys.exit(load_entry_point('PasteScript', 'console_scripts', 'paster')())
+    
