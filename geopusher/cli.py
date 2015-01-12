@@ -13,6 +13,7 @@ Options:
     -r --remote=CKAN_URL    Remote CKAN url
     --all                   Convert all datasets on a CKAN instance
 """
+import sys
 
 from docopt import docopt
 from ckanapi.remoteckan import RemoteCKAN
