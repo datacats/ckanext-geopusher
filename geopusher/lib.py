@@ -27,7 +27,10 @@ def convert_and_import(ckan, datasets):
         resources = dataset['resources']
         for resource in resources:
             if resource['format'] == 'SHP':
-                process(ckan, resource)
+                try:
+                    process(ckan, resource)
+                except FileTooLargeError:
+                    print "skipping {0} - too large".format(resource['name'])
 
 def process(ckan, resource):
     file = download_file(resource['url'])
