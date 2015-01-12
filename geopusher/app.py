@@ -1,46 +1,9 @@
-import os
-import uuid
-import json
-import shutil
-import ckanapi
-import zipfile
-import logging
-import requests
-import shapefile
-
 from flask import Flask, request
 from subprocess import call
 app = Flask(__name__)
 
-TEMPDIR = 'tmp'
-OUTDIR = os.path.join(TEMPDIR, 'out')
-
 CKAN_URL = os.environ.get('CKAN_URL', 'http://boot2docker:5698')
 APIKEY = os.environ.get('APIKEY', '3067dd7b-945f-44f4-a090-3c990a4ccd83')
-
-def convert_file(shapefile_path, outfile_path):
-    if os.path.isfile(outfile_path):
-        os.remove(outfile_path)
-
-    call(['ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
-            outfile_path, shapefile_path ])
-
-def download_file(url):
-    tmpname = '{0}.{1}'.format(uuid.uuid1(), 'shp.zip')
-    response = requests.get(url, stream=True)
-    with open(os.path.join(TEMPDIR, tmpname), 'wb') as out_file:
-        shutil.copyfileobj(response.raw, out_file)
-
-    return tmpname
-
-def unzip_file(filepath):
-    z = zipfile.ZipFile(os.path.join(TEMPDIR, filepath))
-    dirname = os.path.join(TEMPDIR, filepath[:-4])
-    os.makedirs(dirname)
-    for name in z.namelist():
-        z.extract(name, dirname)
-
-    return dirname
 
 @app.route('/', methods=['POST'])
 def process_webhook():

@@ -32,8 +32,13 @@ def main(paster=False):
     else:
         ckan = LocalCKAN(username=arguments['--user'])
 
+    if arguments['import']:
+        if arguments['--all']:
+            convert_and_import_all()
+        else:
+            convert_and_import(arguments['ID_OR_NAME'])
+
 
 def _switch_to_paster(arguments):
     sys.argv[1:1] = ['--plugin=geopusher', 'geopusher']
     sys.exit(load_entry_point('PasteScript', 'console_scripts', 'paster')())
-    
