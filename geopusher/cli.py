@@ -17,6 +17,7 @@ Options:
 from docopt import doctopt
 from ckanapi.remoteckan import RemoteCKAN
 from ckanapi.localckan import LocalCKAN
+from lib import convert_and_import, convert_and_import_all
 
 def parse_arguments():
     return docopt(__doc__, version = __version__)

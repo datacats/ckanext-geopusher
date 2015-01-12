@@ -1,3 +1,6 @@
+import ckanapi
+from lib import process, FileTooLargeError
+
 from flask import Flask, request
 from subprocess import call
 app = Flask(__name__)
@@ -11,39 +14,14 @@ def process_webhook():
     if resource is None:
         return "", 400
 
-    print "{0}".format(resource['name'])
-
     if resource.get('format', None) == 'SHP':
-        file = download_file(resource['url'])
-
-        unzipped_dir = unzip_file(file)
-
-        shapefile = None
-        for f in os.listdir(unzipped_dir):
-            if f.endswith(".shp"):
-                shapefile = f
-
-        outfile = os.path.join(OUTDIR,
-                              "{0}.{1}".format(resource['name'], 'json'))
-
-        convert_file(os.path.join(unzipped_dir, shapefile), outfile)
-
-        if os.path.getsize(outfile) > 20000000:
-            return '', 413
+        print "processing {0}".format(resource['name'])
 
         ckan = ckanapi.RemoteCKAN(CKAN_URL, apikey=APIKEY)
-        package = ckan.action.package_show(id=resource['package_id'])
-        for res in package['resources']:
-            if res['format'] == 'GeoJSON' and res['name'] == resource['name']:
-                ckan.action.resource_delete(id=res['id'])
-
-        ckan.action.resource_create(
-            package_id = resource['package_id'],
-            upload = open(outfile),
-            format = 'GeoJSON',
-            name = resource['name'],
-            url = 'any'
-        )
+        try:
+            process(ckan, resource)
+        except FileTooLargeError():
+            return '', 413
 
         return '', 201
 
