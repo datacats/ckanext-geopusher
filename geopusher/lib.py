@@ -22,12 +22,16 @@ class FileTooLargeError(Exception):
         return self.extra_msg
 
 def convert_and_import(ckan, datasets):
+    shutil.rmtree(TEMPDIR)
+    os.makedirs(OUTDIR)
+
     for d in datasets:
         dataset = ckan.action.package_show(id=d)
         resources = dataset['resources']
         for resource in resources:
             if resource['format'] == 'SHP':
                 try:
+                    print "processing {0}:{1}".format(d, resource['name'])
                     process(ckan, resource)
                 except FileTooLargeError:
                     print "skipping {0} - too large".format(resource['name'])
@@ -41,9 +45,13 @@ def process(ckan, resource):
     for f in os.listdir(unzipped_dir):
         if f.endswith(".shp"):
             shapefile = f
+        else:
+            print "No shapefile found in archive: {0}".format(unzipped_dir)
+            return
 
     outfile = os.path.join(OUTDIR,
-                          "{0}.{1}".format(resource['name'], 'json'))
+                          "{0}.{1}".format(resource['name'].replace('/', ''),
+                          'json'))
 
     convert_file(os.path.join(unzipped_dir, shapefile), outfile)
 
