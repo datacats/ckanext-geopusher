@@ -45,9 +45,10 @@ def process(ckan, resource):
     for f in os.listdir(unzipped_dir):
         if f.endswith(".shp"):
             shapefile = f
-        else:
-            print "No shapefile found in archive: {0}".format(unzipped_dir)
-            return
+
+    if shapefile is None:
+        print "No shapefile found in archive: {0}".format(unzipped_dir)
+        return
 
     outfile = os.path.join(OUTDIR,
                           "{0}.{1}".format(resource['name'].replace('/', ''),
