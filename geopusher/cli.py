@@ -14,10 +14,12 @@ Options:
     --all                   Convert all datasets on a CKAN instance
 """
 
-from docopt import doctopt
+from docopt import docopt
 from ckanapi.remoteckan import RemoteCKAN
 from ckanapi.localckan import LocalCKAN
-from lib import convert_and_import, convert_and_import_all
+
+from geopusher.version import __version__
+from geopusher.lib import convert_and_import
 
 def parse_arguments():
     return docopt(__doc__, version = __version__)
@@ -35,9 +37,9 @@ def main(paster=False):
 
     if arguments['import']:
         if arguments['--all']:
-            convert_and_import_all()
+            convert_and_import(ckan, ckan.action.package_list())
         else:
-            convert_and_import(arguments['ID_OR_NAME'])
+            convert_and_import(ckan, arguments['ID_OR_NAME'])
 
 
 def _switch_to_paster(arguments):

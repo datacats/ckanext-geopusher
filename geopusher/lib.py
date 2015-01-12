@@ -8,26 +8,26 @@ import logging
 import requests
 import shapefile
 
-TEMPDIR = '../tmp'
+from subprocess import call
+
+TEMPDIR = os.path.join(os.path.dirname(__file__), '..', 'tmp')
 OUTDIR = os.path.join(TEMPDIR, 'out')
 
 class FileTooLargeError(Exception):
 
     def __init__(self, extra_msg=None):
-    self.extra_msg = extra_msg
+        self.extra_msg = extra_msg
 
     def __str__(self):
         return self.extra_msg
 
-def convert_and_import(ckan, dataset):
-    resources = dataset['resources']
-    for resource in resources:
-        if resource['format'] == 'SHP':
-            process(ckan, resource)
-
-def convert_and_import_all(ckan):
-    for dataset in ckan.action.package_list():
-        convert_and_import(ckan, dataset)
+def convert_and_import(ckan, datasets):
+    for d in datasets:
+        dataset = ckan.action.package_show(id=d)
+        resources = dataset['resources']
+        for resource in resources:
+            if resource['format'] == 'SHP':
+                process(ckan, resource)
 
 def process(ckan, resource):
     file = download_file(resource['url'])

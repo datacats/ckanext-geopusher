@@ -1,8 +1,7 @@
 import ckanapi
-from lib import process, FileTooLargeError
 
+from lib import process, FileTooLargeError
 from flask import Flask, request
-from subprocess import call
 app = Flask(__name__)
 
 CKAN_URL = os.environ.get('CKAN_URL', 'http://boot2docker:5698')
