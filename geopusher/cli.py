@@ -19,6 +19,7 @@ from docopt import docopt
 from ckanapi.remoteckan import RemoteCKAN
 from ckanapi.localckan import LocalCKAN
 
+from pkg_resources import load_entry_point
 from geopusher.version import __version__
 from geopusher.lib import convert_and_import
 
