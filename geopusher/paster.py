@@ -18,7 +18,7 @@ class _DelegateParsing(object):
         options.config = cfg if cfg is not None else './development.ini'
         return options, []
 
-class CKANAPICommand(CkanCommand):
+class GeopusherCommand(CkanCommand):
     summary = cli.__doc__.split('\n')[0]
     usage = cli.__doc__
     parser = _DelegateParsing()

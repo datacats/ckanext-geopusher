@@ -19,5 +19,8 @@ setup(
     entry_points = """
         [console_scripts]
         geopusher=geopusher.cli:main
+
+        [paste.paster_command]
+        geopusher=geopusher.paster:GeopusherCommand
         """
     )
