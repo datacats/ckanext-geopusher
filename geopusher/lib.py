@@ -21,7 +21,7 @@ class FileTooLargeError(Exception):
     def __str__(self):
         return self.extra_msg
 
-def convert_and_import(ckan, datasets):
+def convert_and_import(ckan, datasets, file_format):
     shutil.rmtree(TEMPDIR)
     os.makedirs(OUTDIR)
 
@@ -29,32 +29,37 @@ def convert_and_import(ckan, datasets):
         dataset = ckan.action.package_show(id=d)
         resources = dataset['resources']
         for resource in resources:
-            if resource['format'] == 'SHP':
+            if resource['format'] == file_format:
                 try:
                     print "processing {0}:{1}".format(d, resource['name'])
-                    process(ckan, resource)
+                    process(ckan, resource, file_format)
                 except FileTooLargeError:
                     print "skipping {0} - too large".format(resource['name'])
 
-def process(ckan, resource):
-    file = download_file(resource['url'])
+def process(ckan, resource, file_format):
+    file = download_file(resource['url'], file_format)
+    filepath = os.path.join(TEMPDIR, file)
 
-    unzipped_dir = unzip_file(file)
+    if file_format == 'SHP':
+        unzipped_dir = unzip_file(file)
+        shapefile = None
+        for f in os.listdir(unzipped_dir):
+            if f.endswith(".shp"):
+                shapefile = f
 
-    shapefile = None
-    for f in os.listdir(unzipped_dir):
-        if f.endswith(".shp"):
-            shapefile = f
+        if shapefile is None:
+            print "No shapefile found in archive: {0}".format(unzipped_dir)
+            return
+        else:
+            file = shapefile
+            filepath = os.path.join(unzipped_dir, shapefile)
 
-    if shapefile is None:
-        print "No shapefile found in archive: {0}".format(unzipped_dir)
-        return
 
     outfile = os.path.join(OUTDIR,
                           "{0}.{1}".format(resource['name'].replace('/', ''),
                           'json'))
 
-    convert_file(os.path.join(unzipped_dir, shapefile), outfile)
+    convert_file(filepath, outfile)
 
     if os.path.getsize(outfile) > 20000000:
         raise FileTooLargeError()
@@ -72,15 +77,19 @@ def process(ckan, resource):
         url = 'any'
     )
 
-def convert_file(shapefile_path, outfile_path):
+def convert_file(input_path, outfile_path):
     if os.path.isfile(outfile_path):
         os.remove(outfile_path)
 
     call(['ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
-            outfile_path, shapefile_path ])
+            outfile_path, input_path ])
 
-def download_file(url):
-    tmpname = '{0}.{1}'.format(uuid.uuid1(), 'shp.zip')
+def download_file(url, file_format):
+    if file_format == 'SHP':
+        tmpname = '{0}.{1}'.format(uuid.uuid1(), 'shp.zip')
+    elif file_format == 'KML':
+        tmpname = '{0}.{1}'.format(uuid.uuid1(), 'kml')
+
     response = requests.get(url, stream=True)
     with open(os.path.join(TEMPDIR, tmpname), 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)

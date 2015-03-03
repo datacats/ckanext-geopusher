@@ -2,6 +2,7 @@
 
 Usage:
     geopusher import (ID_OR_NAME ... | --all)
+              -f FORMAT
               [[-c CONFIG] [-u USER] | -r CKAN_URL [-a APIKEY]]
 
 Options:
@@ -39,9 +40,11 @@ def main(paster=False):
 
     if arguments['import']:
         if arguments['--all']:
-            convert_and_import(ckan, ckan.action.package_list())
+            convert_and_import(ckan,
+                               ckan.action.package_list(),
+                               arguments['-f'])
         else:
-            convert_and_import(ckan, arguments['ID_OR_NAME'])
+            convert_and_import(ckan, arguments['ID_OR_NAME'], arguments['-f'])
 
 
 def _switch_to_paster(arguments):
