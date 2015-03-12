@@ -47,35 +47,34 @@ def convert_and_import(ckan, datasets, file_format):
 def process(ckan, resource, file_format):
     try:
         file = download_file(resource['url'], file_format)
+
+        filepath = os.path.join(TEMPDIR, file)
+
+        if file_format == 'SHP':
+            unzipped_dir = unzip_file(file)
+
+            shapefile = None
+            for f in os.listdir(unzipped_dir):
+                if f.endswith(".shp"):
+                    shapefile = f
+
+            if shapefile is None:
+                print "No shapefile found in archive: {0}".format(unzipped_dir)
+                return
+            else:
+                file = shapefile
+                filepath = os.path.join(unzipped_dir, shapefile)
+
+
+        res_name = resource['name'].encode('ascii', 'ignore')
+        outfile = os.path.join(OUTDIR,
+                              "{0}.{1}".format(res_name.replace('/', ''),
+                              'json'))
+
+        convert_file(filepath, outfile)
+
     except BadResourceFileException as e:
         return
-        
-    filepath = os.path.join(TEMPDIR, file)
-
-    if file_format == 'SHP':
-        try:
-            unzipped_dir = unzip_file(file)
-        except BadResourceFileException as e:
-            return
-
-        shapefile = None
-        for f in os.listdir(unzipped_dir):
-            if f.endswith(".shp"):
-                shapefile = f
-
-        if shapefile is None:
-            print "No shapefile found in archive: {0}".format(unzipped_dir)
-            return
-        else:
-            file = shapefile
-            filepath = os.path.join(unzipped_dir, shapefile)
-
-
-    outfile = os.path.join(OUTDIR,
-                          "{0}.{1}".format(resource['name'].replace('/', ''),
-                          'json'))
-
-    convert_file(filepath, outfile)
 
     if os.path.getsize(outfile) > 20000000:
         raise FileTooLargeError()
@@ -97,8 +96,13 @@ def convert_file(input_path, outfile_path):
     if os.path.isfile(outfile_path):
         os.remove(outfile_path)
 
-    call(['ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
+    returncode = call(['ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
             outfile_path, input_path ])
+
+    if returncode == 1:
+        raise BadResourceFileException(
+            "{0} could not be converted".format(input_path)
+        )
 
 def download_file(url, file_format):
     if file_format == 'SHP':
@@ -110,7 +114,8 @@ def download_file(url, file_format):
 
     if response.status_code != 200:
         raise BadResourceFileException(
-            "{0} could not be downloaded".format(url))
+            "{0} could not be downloaded".format(url)
+        )
 
     with open(os.path.join(TEMPDIR, tmpname), 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
@@ -122,7 +127,8 @@ def unzip_file(filepath):
         z = zipfile.ZipFile(os.path.join(TEMPDIR, filepath))
     except zipfile.BadZipfile as e:
         raise BadResourceFileException(
-            "{0} is not a valid zip file, skipping".format(filepath))
+            "{0} is not a valid zip file, skipping".format(filepath)
+        )
 
     dirname = os.path.join(TEMPDIR, filepath[:-4])
     os.makedirs(dirname)
