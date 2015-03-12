@@ -13,6 +13,13 @@ from subprocess import call
 TEMPDIR = os.path.join(os.path.dirname(__file__), '..', 'tmp')
 OUTDIR = os.path.join(TEMPDIR, 'out')
 
+class BadShapefileException(Exception):
+    def __init__(self, extra_msg=None):
+        self.extra_msg = extra_msg
+
+    def __str__(self):
+        return self.extra_msg
+
 class FileTooLargeError(Exception):
 
     def __init__(self, extra_msg=None):
@@ -29,19 +36,24 @@ def convert_and_import(ckan, datasets, file_format):
         dataset = ckan.action.package_show(id=d)
         resources = dataset['resources']
         for resource in resources:
+            res_name = resource['name'].encode('ascii', 'ignore')
             if resource['format'] == file_format:
                 try:
-                    print "processing {0}:{1}".format(d, resource['name'])
+                    print "processing {0}:{1}".format(d, res_name)
                     process(ckan, resource, file_format)
                 except FileTooLargeError:
-                    print "skipping {0} - too large".format(resource['name'])
+                    print "skipping {0}:{1} - too large".format(d, res_name)
 
 def process(ckan, resource, file_format):
     file = download_file(resource['url'], file_format)
     filepath = os.path.join(TEMPDIR, file)
 
     if file_format == 'SHP':
-        unzipped_dir = unzip_file(file)
+        try:
+            unzipped_dir = unzip_file(file)
+        except BadShapefileException as e:
+            return
+
         shapefile = None
         for f in os.listdir(unzipped_dir):
             if f.endswith(".shp"):
@@ -97,7 +109,12 @@ def download_file(url, file_format):
     return tmpname
 
 def unzip_file(filepath):
-    z = zipfile.ZipFile(os.path.join(TEMPDIR, filepath))
+    try:
+        z = zipfile.ZipFile(os.path.join(TEMPDIR, filepath))
+    except zipfile.BadZipfile as e:
+        raise BadShapefileException(
+            "{0} is not a valid zip file, skipping".format(filepath))
+
     dirname = os.path.join(TEMPDIR, filepath[:-4])
     os.makedirs(dirname)
     for name in z.namelist():
