@@ -13,7 +13,7 @@ from subprocess import call
 TEMPDIR = os.path.join(os.path.dirname(__file__), '..', 'tmp')
 OUTDIR = os.path.join(TEMPDIR, 'out')
 
-class BadShapefileException(Exception):
+class BadResourceFileException(Exception):
     def __init__(self, extra_msg=None):
         self.extra_msg = extra_msg
 
@@ -45,13 +45,17 @@ def convert_and_import(ckan, datasets, file_format):
                     print "skipping {0}:{1} - too large".format(d, res_name)
 
 def process(ckan, resource, file_format):
-    file = download_file(resource['url'], file_format)
+    try:
+        file = download_file(resource['url'], file_format)
+    except BadResourceFileException as e:
+        return
+        
     filepath = os.path.join(TEMPDIR, file)
 
     if file_format == 'SHP':
         try:
             unzipped_dir = unzip_file(file)
-        except BadShapefileException as e:
+        except BadResourceFileException as e:
             return
 
         shapefile = None
@@ -103,6 +107,11 @@ def download_file(url, file_format):
         tmpname = '{0}.{1}'.format(uuid.uuid1(), 'kml')
 
     response = requests.get(url, stream=True)
+
+    if response.status_code != 200:
+        raise BadResourceFileException(
+            "{0} could not be downloaded".format(url))
+
     with open(os.path.join(TEMPDIR, tmpname), 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
 
@@ -112,7 +121,7 @@ def unzip_file(filepath):
     try:
         z = zipfile.ZipFile(os.path.join(TEMPDIR, filepath))
     except zipfile.BadZipfile as e:
-        raise BadShapefileException(
+        raise BadResourceFileException(
             "{0} is not a valid zip file, skipping".format(filepath))
 
     dirname = os.path.join(TEMPDIR, filepath[:-4])
