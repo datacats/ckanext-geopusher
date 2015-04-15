@@ -13,12 +13,14 @@ def process_webhook():
     if resource is None:
         return "", 400
 
-    if resource.get('format', None) == 'SHP':
+    res_format = resource.get('format', None)
+
+    if res_format == 'SHP' or res_format == 'KML':
         print "processing {0}".format(resource['name'])
 
         ckan = ckanapi.RemoteCKAN(CKAN_URL, apikey=APIKEY)
         try:
-            process(ckan, resource)
+            process(ckan, resource, res_format)
         except FileTooLargeError():
             return '', 413
 
