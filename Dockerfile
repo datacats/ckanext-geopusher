@@ -8,3 +8,5 @@ RUN pip install -r requirements.txt
 ADD . /source/
 
 EXPOSE 5000
+
+CMD python /source/geopusher/main.py
