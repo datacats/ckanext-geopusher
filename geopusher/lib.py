@@ -30,7 +30,6 @@ class FileTooLargeError(Exception):
 
 def convert_and_import(ckan, datasets, file_format):
     shutil.rmtree(TEMPDIR)
-    os.makedirs(OUTDIR)
 
     for d in datasets:
         dataset = ckan.action.package_show(id=d)
@@ -45,6 +44,9 @@ def convert_and_import(ckan, datasets, file_format):
                     print "skipping {0}:{1} - too large".format(d, res_name)
 
 def process(ckan, resource, file_format):
+    if not os.path.isdir(OUTDIR):
+        os.makedirs(OUTDIR)
+    
     try:
         file = download_file(resource['url'], file_format)
 
