@@ -15,7 +15,7 @@ def process_webhook():
     res_format = resource.get('format', None)
 
     if res_format == 'SHP' or res_format == 'KML':
-        print "processing {0}".format(resource['name'])
+        print "processing {0}".format(resource['name'].encode('utf-8'))
 
         ckan = ckanapi.RemoteCKAN(
                         hook.get('ckan', None),
