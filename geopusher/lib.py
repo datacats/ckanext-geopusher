@@ -30,6 +30,7 @@ class FileTooLargeError(Exception):
 
 def convert_and_import(ckan, datasets, file_format):
     shutil.rmtree(TEMPDIR)
+    os.makedirs(TEMPDIR)
 
     for d in datasets:
         dataset = ckan.action.package_show(id=d)
