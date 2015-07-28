@@ -1,6 +1,4 @@
 ckanapi
 requests
-docopt
-flask
 pyshp
-tornado
+celery

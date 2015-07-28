@@ -28,24 +28,6 @@ class FileTooLargeError(Exception):
     def __str__(self):
         return self.extra_msg
 
-def convert_and_import(ckan, datasets, file_format):
-    shutil.rmtree(TEMPDIR)
-    os.makedirs(TEMPDIR)
-
-    for d in datasets:
-        dataset = ckan.action.package_show(id=d)
-        resources = dataset['resources']
-        for resource in resources:
-            res_name = resource['name'].encode('ascii', 'ignore')
-            if resource['format'] == file_format:
-                try:
-                    print "processing {0}:{1}".format(
-                                            d, res_name.encode('utf-8'))
-                    process(ckan, resource, file_format)
-                except FileTooLargeError:
-                    print "skipping {0}:{1} - too large".format(
-                                            d, res_name.encode('utf-8'))
-
 def process(ckan, resource, file_format):
     if not os.path.isdir(OUTDIR):
         os.makedirs(OUTDIR)

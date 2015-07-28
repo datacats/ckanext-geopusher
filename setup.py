@@ -45,8 +45,6 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
     ],
-
-
     # What does your project relate to?
     keywords='''CKAN Geopusher Shape GeoJSON''',
 
@@ -79,5 +77,7 @@ setup(
     entry_points='''
         [ckan.plugins]
         geopusher=ckanext.geopusher.plugin:GeopusherPlugin
+        [ckan.celery_task]
+        tasks=ckanext.geopusher.celery_import:task_imports
     ''',
 )
