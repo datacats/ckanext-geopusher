@@ -1,6 +1,6 @@
 Geopusher
 =========
-Capture any KML/Shapefiles uploaded to CKAN and re-upload them as GeoJSON
+Capture any KML/Shapefiles uploaded to CKAN and re-upload them as new GeoJSON resources
 
 Implemented as a CKAN celery task that listens to resource updates
 
