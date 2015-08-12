@@ -28,11 +28,13 @@ class FileTooLargeError(Exception):
     def __str__(self):
         return self.extra_msg
 
-def process(ckan, resource, file_format):
+def process(ckan, resource_id):
     if not os.path.isdir(OUTDIR):
         os.makedirs(OUTDIR)
 
     try:
+        resource = ckan.action.resource_show(id=resource_id)
+        file_format = resource['format'].upper()
         file = download_file(resource['url'], file_format)
 
         filepath = os.path.join(TEMPDIR, file)
@@ -83,8 +85,10 @@ def convert_file(input_path, outfile_path):
     if os.path.isfile(outfile_path):
         os.remove(outfile_path)
 
-    returncode = call(['ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
-            outfile_path, input_path ])
+    returncode = call([
+        'ogr2ogr', '-f', 'GeoJSON', '-t_srs', 'crs:84',
+        outfile_path, input_path
+        ])
 
     if returncode == 1:
         raise BadResourceFileException(

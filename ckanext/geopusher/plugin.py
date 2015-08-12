@@ -28,14 +28,16 @@ class GeopusherPlugin(plugins.SingletonPlugin):
 
     def notify(self, entity, operation=None):
         if isinstance(entity, model.Resource):
-            resource_url = entity.url
-            package_id = entity.package_id
-            # new event is sent, then a changed event. 
+            resource_id = entity.id
+            # new event is sent, then a changed event.
             if operation == DomainObjectOperation.changed:
                 # There is a NEW or CHANGED resource. We should check if
                 # it is a shape file and pass it off to Denis's code if
                 # so it can process it
+                site_url = config.get('ckan.site_url', 'http://localhost/')
+                apikey = model.User.get('default').apikey
+
                 celery.send_task(
                     'geopusher.process_resource',
-                    args=[resource_url, package_id],
+                    args=[resource_id, site_url, apikey],
                     task_id='{}-{}'.format(str(uuid.uuid4()), operation))
