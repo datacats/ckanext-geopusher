@@ -1,8 +1,8 @@
 Geopusher
 =========
-Capture any Shapefiles uploaded to CKAN and re-upload them as GeoJSON
+Capture any KML/Shapefiles uploaded to CKAN and re-upload them as new GeoJSON resources
 
-Works well with ckanext-webhooks, or as a standalone command line utility which you can run periodically, with cron for example.
+Implemented as a CKAN celery task that listens to resource updates
 
 Installation
 ============
@@ -21,7 +21,7 @@ ckan.plugins = ... geopusher
 Usage
 =====
 ### Automatic conversion
-You can run the built-in CKAN celery deamon, if you want shapefiles and KML
+You can run the built-in CKAN celery daemon, if you want shapefiles and KML
 resources to be converted automatically when they are created or updated:
 
 ```
@@ -44,4 +44,7 @@ geopusher import --all -r http://myckan.org -a your_api_key
 To only convert resources for a subset of datasets:
 ```
 geopusher import dataset1 dataset2 dataset3 -r http://myckan.org -a your_api_key
+=======
+```
+$ datacats paster celeryd
 ```
