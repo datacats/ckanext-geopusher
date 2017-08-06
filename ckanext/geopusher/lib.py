@@ -63,6 +63,7 @@ def process(ckan, resource_id):
         convert_file(filepath, outfile)
 
     except BadResourceFileException as e:
+        print(e.extra_msg)
         return
 
     if os.path.getsize(outfile) > 20000000:
@@ -100,6 +101,10 @@ def download_file(url, file_format):
         tmpname = '{0}.{1}'.format(uuid.uuid1(), 'shp.zip')
     elif file_format == 'KML':
         tmpname = '{0}.{1}'.format(uuid.uuid1(), 'kml')
+    else:
+        raise BadResourceFileException(
+            "{0} is not in a format we can convert".format(url)
+        )
 
     response = requests.get(url, stream=True)
 
