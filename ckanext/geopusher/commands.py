@@ -49,8 +49,9 @@ class GeopusherCommands(CkanCommand):
         for package in ckan.action.package_list():
             resources = ckan.action.package_show(id=package).get('resources', [])
             for resource in resources:
-                print("converting resource {} for package {}".format(resource['id'], resource['package_id']))
-                self._convert(ckan, resource['id'])
+                if resource['format'].upper() == 'SHP':
+                    print("converting resource {} for package {}".format(resource['id'], resource['package_id']))
+                    self._convert(ckan, resource['id'])
             
 
     def _convert(self, ckan, resource_id):

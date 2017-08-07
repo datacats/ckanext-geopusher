@@ -12,7 +12,7 @@ import ckanapi
 from ckan.model.domain_object import DomainObjectOperation
 from ckan.plugins.toolkit import get_action
 
-from ckan.lib.celery_app import celery
+#from ckan.lib.celery_app import celery
 
 
 class GeopusherPlugin(plugins.SingletonPlugin):
@@ -31,13 +31,10 @@ class GeopusherPlugin(plugins.SingletonPlugin):
             resource_id = entity.id
             # new event is sent, then a changed event.
             if operation == DomainObjectOperation.changed:
-                # There is a NEW or CHANGED resource. We should check if
-                # it is a shape file and pass it off to Denis's code if
-                # so it can process it
                 site_url = config.get('ckan.site_url', 'http://localhost/')
                 apikey = model.User.get('default').apikey
 
-                celery.send_task(
-                    'geopusher.process_resource',
-                    args=[resource_id, site_url, apikey],
-                    task_id='{}-{}'.format(str(uuid.uuid4()), operation))
+                #celery.send_task(
+                #    'geopusher.process_resource',
+                #    args=[resource_id, site_url, apikey],
+                #    task_id='{}-{}'.format(str(uuid.uuid4()), operation))

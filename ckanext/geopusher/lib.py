@@ -67,12 +67,18 @@ def process(ckan, resource_id):
         return
 
     if os.path.getsize(outfile) > 20000000:
-        raise FileTooLargeError()
+        print "resource is too large to process: {}".format(resource['url'])
+        return
+        #raise FileTooLargeError()
 
     package = ckan.action.package_show(id=resource['package_id'])
     for res in package['resources']:
         if res['format'] == 'GeoJSON' and res['name'] == resource['name']:
-            ckan.action.resource_delete(id=res['id'])
+            try:
+                ckan.action.resource_delete(id=res['id'])
+            except ckanapi.CKANAPIError as e:
+                print "count not delete resource {} in package {}".format(res['id'], resource['package_id'])
+                return
 
     ckan.action.resource_create(
         package_id = resource['package_id'],
